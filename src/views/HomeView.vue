@@ -57,30 +57,26 @@ export default {
   methods: {
     // Handle Google sign-in
     async onGoogleSignIn() {
-  try {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: window.location.origin, // Redirect back to your application after login
-        queryParams: {
-          prompt: 'select_account', // Forces the account selection screen
-        },
-      },
-    });
+      try {
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider: "google",
+          options: {
+            redirectTo: `${window.location.origin}/welcome`, // Redirect to welcome page after login
+          },
+        });
 
-    if (error) {
-      console.error('Error during Google sign-in:', error.message);
-      this.errorMessage = `Google sign-in failed: ${error.message}`;
-      return;
-    }
+        if (error) {
+          console.error("Error during Google sign-in:", error.message);
+          this.errorMessage = `Google sign-in failed: ${error.message}`;
+          return;
+        }
 
-    console.log('Redirecting to Google for sign-in...');
-  } catch (error) {
-    console.error('An unexpected error occurred:', error.message);
-    this.errorMessage = 'An unexpected error occurred. Please try again later.';
-  }
-}
-,
+        console.log("Redirecting to Google for sign-in...");
+      } catch (error) {
+        console.error("An unexpected error occurred:", error.message);
+        this.errorMessage = "An unexpected error occurred. Please try again later.";
+      }
+    },
 
     // Handle form login
     async handleLogin() {
