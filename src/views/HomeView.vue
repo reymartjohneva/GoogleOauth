@@ -3,15 +3,27 @@
     <h2>Login</h2>
     
     <!-- Login Form -->
-    <form @submit.prevent="handleSubmit">
+    <form @submit.prevent="handleLogin">
       <div class="form-group">
         <label for="username">Username</label>
-        <input type="text" id="username" v-model="username" required placeholder="Enter your username">
+        <input 
+          type="text" 
+          id="username" 
+          v-model="username" 
+          required 
+          placeholder="Enter your username" 
+        />
       </div>
 
       <div class="form-group">
         <label for="password">Password</label>
-        <input type="password" id="password" v-model="password" required placeholder="Enter your password">
+        <input 
+          type="password" 
+          id="password" 
+          v-model="password" 
+          required 
+          placeholder="Enter your password" 
+        />
       </div>
       
       <button type="submit" class="login-btn">Login</button>
@@ -26,49 +38,70 @@
 </template>
 
 <script>
-import { createClient } from '@supabase/supabase-js';
+import { createClient } from "@supabase/supabase-js";
 
 // Initialize Supabase client with your credentials
 const supabase = createClient(
-  'https://gsiimjlxctkwotcedhxt.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdzaWltamx4Y3Rrd290Y2VkaHh0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzI2NzcwMzgsImV4cCI6MjA0ODI1MzAzOH0.YchWDd0bA1JME45t2qXZTKCXbv0dIYfc1qMBhLxvTnk'
+  "https://gsiimjlxctkwotcedhxt.supabase.co",
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdzaWltamx4Y3Rrd290Y2VkaHh0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzI2NzcwMzgsImV4cCI6MjA0ODI1MzAzOH0.YchWDd0bA1JME45t2qXZTKCXbv0dIYfc1qMBhLxvTnk"
 );
 
 export default {
   data() {
     return {
-      username: '',
-      password: '',
-      errorMessage: '', // For displaying error messages
+      username: "",
+      password: "",
+      errorMessage: "", // For displaying error messages
     };
   },
   methods: {
+    // Handle Google sign-in
     async onGoogleSignIn() {
+  try {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: window.location.origin, // Redirect back to your application after login
+        queryParams: {
+          prompt: 'select_account', // Forces the account selection screen
+        },
+      },
+    });
+
+    if (error) {
+      console.error('Error during Google sign-in:', error.message);
+      this.errorMessage = `Google sign-in failed: ${error.message}`;
+      return;
+    }
+
+    console.log('Redirecting to Google for sign-in...');
+  } catch (error) {
+    console.error('An unexpected error occurred:', error.message);
+    this.errorMessage = 'An unexpected error occurred. Please try again later.';
+  }
+}
+,
+
+    // Handle form login
+    async handleLogin() {
       try {
-        // Trigger Google OAuth login with Supabase
-        const { error } = await supabase.auth.signInWithOAuth({
-          provider: 'google',
-          options: {
-            redirectTo: window.location.origin, // Redirect back to your application after login
-          },
+        const { error, data } = await supabase.auth.signInWithPassword({
+          email: this.username,
+          password: this.password,
         });
 
         if (error) {
-          console.error('Error during Google sign-in:', error.message);
-          this.errorMessage = `Google sign-in failed: ${error.message}`;
+          this.errorMessage = "Login failed. Check your credentials and try again.";
+          console.error("Login error:", error.message);
           return;
         }
 
-        console.log('Redirecting to Google for sign-in...');
+        console.log("Login successful:", data);
+        window.location.href = "/welcome"; // Redirect to welcome page
       } catch (error) {
-        console.error('An unexpected error occurred:', error.message);
-        this.errorMessage = 'An unexpected error occurred. Please try again later.';
+        this.errorMessage = "An unexpected error occurred. Please try again later.";
+        console.error("Unexpected error:", error.message);
       }
-    },
-
-    handleSubmit() {
-      // Handle the regular login form submission
-      console.log('Login form submitted with:', this.username, this.password);
     },
   },
 };
@@ -82,6 +115,13 @@ export default {
   margin: 0 auto;
   border: 1px solid #ccc;
   border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  background-color: #f9f9f9;
+}
+
+h2 {
+  margin-bottom: 20px;
+  color: #333;
 }
 
 .form-group {
@@ -92,6 +132,7 @@ label {
   display: block;
   font-size: 14px;
   margin-bottom: 5px;
+  color: #555;
 }
 
 input {
@@ -100,6 +141,13 @@ input {
   font-size: 16px;
   border: 1px solid #ccc;
   border-radius: 5px;
+  outline: none;
+  box-sizing: border-box;
+}
+
+input:focus {
+  border-color: #4285f4;
+  box-shadow: 0 0 5px rgba(66, 133, 244, 0.5);
 }
 
 button {
@@ -110,11 +158,12 @@ button {
   border-radius: 5px;
   width: 100%;
   margin-top: 10px;
+  color: white;
+  transition: background-color 0.3s ease;
 }
 
 .login-btn {
   background-color: #4285f4;
-  color: white;
 }
 
 .login-btn:hover {
@@ -123,15 +172,13 @@ button {
 
 .google-btn {
   padding: 10px 20px;
-  background-color: #4285f4;
+  background-color: #db4437;
   color: white;
-  border: none;
-  cursor: pointer;
-  border-radius: 5px;
+  margin-top: 15px;
 }
 
 .google-btn:hover {
-  background-color: #357ae8;
+  background-color: #c33627;
 }
 
 .error-message {
